@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test</title>
+</head>
+<body>
+
+
+<input type="file" id="file_to_upload"> <button type="button" onclick="_uploadFile()">Upload</button>
+
+<script src="https://cdn.jsdelivr.net/npm/sharepointplus@5.2.0/sharepointplus-5.2.min.js"></script>
+<script>
+    var _SHAREPOINT_URL = "http://localhost:8080/teams/desol0070";
+    var list = 'user_documents';
+
+    // example with a input[type="file"]
+    // <input type="file" id="file_to_upload"> <button type="button" onclick="_uploadFile()">Upload</button>
+    function _uploadFile() {
+        var files;
+        // retrive file from INPUT
+        files = document.querySelector('#file_to_upload').files;
+        if (!files || files.length === 0) {
+            alert("ERROR: Select a file");
+            return;
+        }
+        files = Array.prototype.slice.call(files);
+        // read the files
+        Promise.all(files.map(function(file) {
+            return new Promise(function(prom_res, prom_rej) {
+                // use fileReader
+                var fileReader = new FileReader();
+                fileReader.onloadend = function(e) {
+                    file.content = e.target.result;
+                    prom_res(file);
+                }
+                fileReader.onerror = function(e) {
+                    prom_rej(e.target.error);
+                }
+                fileReader.readAsArrayBuffer(file);
+            })
+        })).then(function(files) {
+            // upload files
+            return Promise.all(files.map(function(file) {
+                return $SP().list(list, _SHAREPOINT_URL).createFile({
+                    content:file.content,
+                    filename:file.name,
+                    fields: {
+                        someField: 'foo bar baz'
+                    },
+                    progress:function(perc) {
+                        console.log("Progress => ",perc+"%")
+                    }
+                })
+            }))
+        })
+    }
+
+</script>
+</body>
+</html>
