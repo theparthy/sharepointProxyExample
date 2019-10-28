@@ -5,9 +5,10 @@
     <title>test</title>
 </head>
 <body>
-
-
 <input type="file" id="file_to_upload"> <button type="button" onclick="_uploadFile()">Upload</button>
+<div>
+    <code id="error"></code>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sharepointplus@5.2.0/sharepointplus-5.2.min.js"></script>
 <script>
@@ -52,7 +53,13 @@
                         console.log("Progress => ",perc+"%")
                     }
                 })
-            }))
+            })).catch(function (error) {
+
+                var errorElement = document.querySelector('#error');
+
+                errorElement.append(JSON.stringify(error))
+
+            })
         })
     }
 
